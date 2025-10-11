@@ -3,7 +3,7 @@
 # Google Cloud Run Jobsにデプロイするスクリプト
 
 # 設定
-PROJECT_ID="corded-guild-461323-e1"
+PROJECT_ID="yiwu-automate"
 REGION="asia-northeast1"
 JOB_NAME="tracking-shipments"
 IMAGE_NAME="gcr.io/${PROJECT_ID}/${JOB_NAME}"

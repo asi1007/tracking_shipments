@@ -9,7 +9,7 @@
    
    # 認証
    gcloud auth login
-   gcloud config set project corded-guild-461323-e1
+   gcloud config set project yiwu-automate
    ```
 
 2. **Dockerのインストール**
@@ -37,7 +37,7 @@
 
 ```bash
 # 1. プロジェクトIDを設定
-export PROJECT_ID="corded-guild-461323-e1"
+export PROJECT_ID="yiwu-automate"
 export REGION="asia-northeast1"
 export JOB_NAME="tracking-shipments"
 
@@ -80,9 +80,9 @@ gcloud run jobs execute tracking-shipments --region asia-northeast1
 gcloud scheduler jobs create http tracking-shipments-daily \
   --location asia-northeast1 \
   --schedule "0 9 * * *" \
-  --uri "https://asia-northeast1-run.googleapis.com/apis/run.googleapis.com/v1/namespaces/corded-guild-461323-e1/jobs/tracking-shipments:run" \
+  --uri "https://asia-northeast1-run.googleapis.com/apis/run.googleapis.com/v1/namespaces/yiwu-automate/jobs/tracking-shipments:run" \
   --http-method POST \
-  --oauth-service-account-email auto-order@corded-guild-461323-e1.iam.gserviceaccount.com
+  --oauth-service-account-email auto-order@yiwu-automate.iam.gserviceaccount.com
 ```
 
 ## ログの確認
@@ -91,7 +91,8 @@ gcloud scheduler jobs create http tracking-shipments-daily \
 # 最新の実行ログを確認
 gcloud logging read "resource.type=cloud_run_job AND resource.labels.job_name=tracking-shipments" \
   --limit 50 \
-  --format json
+  --format json \
+  --project yiwu-automate
 ```
 
 ## トラブルシューティング
