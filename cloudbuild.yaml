@@ -1,8 +1,13 @@
 # Cloud Buildの設定ファイル（オプション）
 steps:
-  # Dockerイメージをビルド
+  # Dockerイメージをビルド（AMD64アーキテクチャ指定）
   - name: 'gcr.io/cloud-builders/docker'
-    args: ['build', '-t', 'gcr.io/$PROJECT_ID/tracking-shipments:latest', '.']
+    args: 
+      - 'build'
+      - '--platform=linux/amd64'
+      - '-t'
+      - 'gcr.io/$PROJECT_ID/tracking-shipments:latest'
+      - '.'
   
   # Container Registryにプッシュ
   - name: 'gcr.io/cloud-builders/docker'

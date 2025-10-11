@@ -1,0 +1,16 @@
+Creating temporary archive of 9 file(s) totalling 34.4 KiB before compression.
+Uploading tarball of [.] to [gs://yiwu-automate_cloudbuild/source/1760162792.06117-66b5cb5da69d47a190388362070273ad.tgz]
+Created [https://cloudbuild.googleapis.com/v1/projects/yiwu-automate/locations/global/builds/bf3d3632-c1df-4a66-9341-73b0142de56b].
+Logs are available at [ https://console.cloud.google.com/cloud-build/builds/bf3d3632-c1df-4a66-9341-73b0142de56b?project=144875028915 ].
+
+gcloud builds submit only displays logs from Cloud Storage. To view logs from Cloud Logging, run:
+gcloud beta builds submit
+
+Waiting for build to complete. Polling interval: 1 second(s).
+
+INFO: The service account running this build projects/yiwu-automate/serviceAccounts/144875028915-compute@developer.gserviceaccount.com does not have permission to write logs to Cloud Logging. To fix this, grant the Logs Writer (roles/logging.logWriter) role to the service account.
+
+1 message(s) issued.
+
+BUILD FAILURE: Build step failure: build step 0 "gcr.io/cloud-builders/docker" failed: step exited with non-zero status: 1
+ERROR: (gcloud.builds.submit) build bf3d3632-c1df-4a66-9341-73b0142de56b completed with status "FAILURE"

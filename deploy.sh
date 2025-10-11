@@ -1,4 +1,5 @@
 #!/bin/bash
+set -e  # エラーが発生したら即座に終了
 
 # Google Cloud Run Jobsにデプロイするスクリプト
 
@@ -17,51 +18,65 @@ echo "リージョン: ${REGION}"
 echo "ジョブ名: ${JOB_NAME}"
 echo ""
 
-# 1. Dockerイメージをビルド
-echo "[1/3] Dockerイメージをビルド中..."
-docker build -t ${IMAGE_NAME}:latest .
+# 前提条件のチェック
+echo "[前提条件チェック]"
 
-if [ $? -ne 0 ]; then
-    echo "✗ Dockerイメージのビルドに失敗しました"
+# Dockerが起動しているかチェック
+if ! docker info > /dev/null 2>&1; then
+    echo "✗ Dockerが起動していません。Docker Desktopを起動してください。"
     exit 1
 fi
-echo "✓ Dockerイメージのビルド完了"
+echo "✓ Docker起動確認"
+
+# gcloudがインストールされているかチェック
+if ! command -v gcloud &> /dev/null; then
+    echo "✗ gcloud CLIがインストールされていません"
+    exit 1
+fi
+echo "✓ gcloud CLI確認"
+
+# プロジェクトが設定されているかチェック
+CURRENT_PROJECT=$(gcloud config get-value project 2>/dev/null)
+if [ "$CURRENT_PROJECT" != "$PROJECT_ID" ]; then
+    echo "⚠ プロジェクトが異なります: ${CURRENT_PROJECT} → ${PROJECT_ID}"
+    gcloud config set project ${PROJECT_ID}
+fi
+echo "✓ プロジェクト設定: ${PROJECT_ID}"
 echo ""
+
+# 実行するステップを選択
+if [ "$1" = "build" ]; then
+    STEPS="1"
+elif [ "$1" = "push" ]; then
+    STEPS="2"
+elif [ "$1" = "deploy" ]; then
+    STEPS="3"
+else
+    STEPS="123"
+fi
+
+# 1. Dockerイメージをビルド
+case "$STEPS" in
+    *1*)
+    echo "[1/3] Dockerイメージをビルド中..."
+    echo "（これには数分かかる場合があります）"
+    docker build --platform linux/amd64 -t ${IMAGE_NAME}:latest . --progress=plain
+        echo "✓ Dockerイメージのビルド完了"
+        echo ""
+        ;;
+esac
 
 # 2. Container Registryにプッシュ
-echo "[2/3] Container Registryにプッシュ中..."
-docker push ${IMAGE_NAME}:latest
-
-if [ $? -ne 0 ]; then
-    echo "✗ Container Registryへのプッシュに失敗しました"
-    exit 1
-fi
-echo "✓ Container Registryへのプッシュ完了"
-echo ""
-
-# 3. Cloud Run Jobsを作成/更新
-echo "[3/3] Cloud Run Jobsをデプロイ中..."
-gcloud run jobs deploy ${JOB_NAME} \
-    --image ${IMAGE_NAME}:latest \
-    --region ${REGION} \
-    --max-retries 0 \
-    --task-timeout 30m \
-    --memory 2Gi \
-    --cpu 1 \
-    --set-env-vars LOG_LEVEL=INFO
-
-if [ $? -ne 0 ]; then
-    echo "✗ Cloud Run Jobsのデプロイに失敗しました"
-    exit 1
-fi
-echo "✓ Cloud Run Jobsのデプロイ完了"
-echo ""
-
-echo "======================================"
-echo "✓ デプロイが完了しました！"
-echo "======================================"
-echo ""
-echo "ジョブを実行するには："
-echo "gcloud run jobs execute ${JOB_NAME} --region ${REGION}"
-echo ""
-
+case "$STEPS" in
+    *2*)
+        echo "[2/3] Container Registryにプッシュ中..."
+        echo "（これには数分かかる場合があります）"
+        
+        # Docker認証設定
+        gcloud auth configure-docker --quiet
+        
+        docker push ${IMAGE_NAME}:latest
+        echo "✓ Container Registryへのプッシュ完了"
+        echo ""
+        ;;
+esac

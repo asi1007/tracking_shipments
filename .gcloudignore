@@ -1,0 +1,37 @@
+# .gcloudignore - Cloud Buildにアップロードするファイルを制御
+
+# Gitファイル
+.git/
+.gitignore
+
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+venv/
+env/
+ENV/
+build/
+dist/
+*.egg-info/
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# OS
+.DS_Store
+Thumbs.db
+
+# ドキュメント（ビルドに不要）
+README.md
+DEPLOY.md
+仕様書.spec
+
+# service_account.jsonは含める（除外しない）
+!service_account.json
+
