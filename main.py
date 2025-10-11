@@ -440,8 +440,9 @@ class ShipmentTrackingManager:
         logger.info(f"追跡情報の取得を開始: {len(tracking_numbers)}件（同時実行数: 最大{self.MAX_CONCURRENT}件）")
         
         async with async_playwright() as p:
-            # ブラウザを起動
-            browser = await p.chromium.launch(headless=False)  # headless=Trueで非表示モードに変更可能
+            # ブラウザを起動（Cloud Run Jobs用にヘッドレスモード対応）
+            headless = os.getenv('HEADLESS', 'false').lower() == 'true'
+            browser = await p.chromium.launch(headless=headless)
             context = await browser.new_context()
             
             # すべての追跡番号を非同期で取得
