@@ -1,12 +1,22 @@
-# Playwright公式イメージを使用（AMD64アーキテクチャ指定）
-FROM --platform=linux/amd64 mcr.microsoft.com/playwright/python:v1.48.0-jammy
+# AMD64アーキテクチャを明示的に指定
+FROM --platform=linux/amd64 python:3.11-bookworm
 
 # 作業ディレクトリを設定
 WORKDIR /app
 
+# システムパッケージを更新
+RUN apt-get update && apt-get install -y --no-install-recommends \
+    wget \
+    ca-certificates \
+    && rm -rf /var/lib/apt/lists/*
+
 # Pythonパッケージをインストール
 COPY requirements.txt .
 RUN pip install --no-cache-dir -r requirements.txt
+
+# Playwrightブラウザと依存関係をインストール（AMD64用）
+RUN playwright install chromium
+RUN playwright install-deps chromium
 
 # アプリケーションコードをコピー
 COPY main.py .
