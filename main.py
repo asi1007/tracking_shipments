@@ -90,9 +90,9 @@ class GoogleSheetsReader(GoogleSheetsBase):
                 logger.error(f"仕入管理シートが見つかりません。利用可能なシート: {sheet_names}")
                 return []
             
-            # シートの全データを取得（G列とAC列を含む範囲）
+            # シートの全データを取得（G列とAD列を含む範囲）
             # 5行目から10000行目まで取得（空行を含めてすべて取得）
-            all_data = worksheet.get('A5:AC10000')
+            all_data = worksheet.get('A5:AD10000')
             
             logger.debug(f"取得行数: {len(all_data)}行")
             
@@ -100,9 +100,10 @@ class GoogleSheetsReader(GoogleSheetsBase):
             
             # 各行を処理
             for row in all_data:
-                # G列（インデックス6）とAC列（インデックス28）を取得
+                # G列（インデックス6）とAD列（インデックス29）を取得
                 g_value = row[6].strip() if len(row) > 6 and row[6] else ""
-                tracking_number = row[28].strip() if len(row) > 28 and row[28] else ""
+
+                tracking_number = row[29].strip() if len(row) > 29 and row[29] else ""
                 
                 # #N/A や空白以外、かつ在庫管理対象外
                 if tracking_number and tracking_number != "#N/A" and g_value not in ["在庫あり", "在庫なし"]:
@@ -568,6 +569,8 @@ class ShipmentTrackingManager:
             if not tracking_numbers:
                 logger.warning("追跡番号が見つかりませんでした。処理を終了します。")
                 return
+            
+            logger.info(f"取得した追跡番号: {tracking_numbers}")
             
             # [3/4] 追跡情報を一括取得
             logger.info("[3/4] 追跡情報の取得フェーズ")
