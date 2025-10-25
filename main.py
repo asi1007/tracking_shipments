@@ -462,7 +462,7 @@ class ShipmentTrackingManager:
     
     def write_all_tracking_info(self, results: List[Dict]):
         """
-        取得した全追跡情報をまとめて書き込み
+        取得した全追跡情報をまとめて書き込み（バッチ処理でレート制限を回避）
         
         Args:
             results: 全追跡結果のリスト
@@ -481,41 +481,70 @@ class ShipmentTrackingManager:
                 worksheet = self.writer.spreadsheet.add_worksheet(title="tracking", rows="1000", cols="10")
                 logger.info("trackingシートを作成しました")
             
-            # ヘッダーを設定
-            worksheet.update('A1:E1', [['追跡番号', '日付', '場所', '配送状況', '特記事項']])
-            logger.info("ヘッダーを設定しました")
+            # すべてのデータを一つの配列に集める
+            all_rows = [['追跡番号', '日付', '場所', '配送状況', '特記事項']]  # ヘッダー
+            
+            success_count = 0
+            error_count = 0
+            no_data_count = 0
+            
+            for result in results:
+                tracking_number = result['tracking_number']
+                status = result['status']
+                
+                try:
+                    if status == 'success':
+                        tracking_data = result['tracking_data']
+                        notes = result['notes']
+                        
+                        # 各追跡情報を行として追加
+                        for i, data in enumerate(tracking_data):
+                            note_to_write = notes if i == 0 else ""
+                            all_rows.append([
+                                tracking_number,
+                                data['date'],
+                                data['location'],
+                                data['status'],
+                                note_to_write
+                            ])
+                        success_count += 1
+                        
+                    elif status == 'no_data':
+                        all_rows.append([tracking_number, '', '', 'データなし', ''])
+                        no_data_count += 1
+                        
+                    elif status == 'error':
+                        error = result['error']
+                        all_rows.append([tracking_number, '', '', error, ''])
+                        error_count += 1
+                        
+                except Exception as e:
+                    logger.error(f"{tracking_number} のデータ準備に失敗: {e}")
+                    all_rows.append([tracking_number, '', '', f'エラー: {e}', ''])
+                    error_count += 1
+            
+            # 一度にすべてのデータを書き込む（バッチ更新）
+            if len(all_rows) > 1:  # ヘッダー以外にデータがある場合
+                # データの範囲を計算（行数と列数）
+                num_rows = len(all_rows)
+                num_cols = 5  # 追跡番号、日付、場所、配送状況、特記事項
+                
+                # 範囲を計算（A1から最終列・最終行まで）
+                # 列番号をアルファベットに変換（A=1, B=2, ... E=5）
+                end_col = chr(64 + num_cols)  # 5 → 'E'
+                range_notation = f'A1:{end_col}{num_rows}'
+                
+                logger.info(f"バッチ更新を実行: {num_rows}行 × {num_cols}列（範囲: {range_notation}）")
+                worksheet.update(range_notation, all_rows)
+                logger.info("バッチ更新完了")
+                logger.info(f"✓ データ書き込み完了: {range_notation}")
+                logger.info(f"※ 名前付き範囲「tracking」を使用している場合は、範囲を {range_notation} に更新してください")
+            
+            logger.info(f"書き込み完了 - 成功: {success_count}件, データなし: {no_data_count}件, エラー: {error_count}件")
             
         except Exception as e:
-            logger.error(f"シートの準備に失敗: {e}")
+            logger.error(f"シートへの書き込みに失敗: {e}")
             raise
-        
-        success_count = 0
-        error_count = 0
-        no_data_count = 0
-        
-        for result in results:
-            tracking_number = result['tracking_number']
-            status = result['status']
-            
-            try:
-                if status == 'success':
-                    tracking_data = result['tracking_data']
-                    notes = result['notes']
-                    self.writer.write_tracking_info(tracking_number, tracking_data, notes)
-                    success_count += 1
-                elif status == 'no_data':
-                    self.writer.write_tracking_info(tracking_number, [], "")
-                    no_data_count += 1
-                elif status == 'error':
-                    # エラーの場合もエラー情報を書き込む
-                    error = result['error']
-                    self.writer.write_tracking_info(tracking_number, [], error)
-                    error_count += 1
-            except Exception as e:
-                logger.error(f"{tracking_number} の書き込みに失敗: {e}")
-                error_count += 1
-        
-        logger.info(f"書き込み完了 - 成功: {success_count}件, データなし: {no_data_count}件, エラー: {error_count}件")
     
     def display_results(self, results: List[Dict]):
         """
