@@ -80,3 +80,38 @@ case "$STEPS" in
         echo ""
         ;;
 esac
+
+
+# 3. Cloud Run Jobsを作成/更新
+case "$STEPS" in
+    *3*)
+        echo "[3/3] Cloud Run Jobsをデプロイ中..."
+        gcloud run jobs deploy ${JOB_NAME} \
+            --image ${IMAGE_NAME}:latest \
+            --region ${REGION} \
+            --max-retries 0 \
+            --task-timeout 30m \
+            --memory 2Gi \
+            --cpu 1 \
+            --set-env-vars LOG_LEVEL=INFO,HEADLESS=true \
+            --quiet
+        echo "✓ Cloud Run Jobsのデプロイ完了"
+        echo ""
+        ;;
+esac
+
+echo "======================================"
+echo "✓ デプロイが完了しました！"
+echo "======================================"
+echo ""
+echo "ジョブを実行するには："
+echo "  gcloud run jobs execute ${JOB_NAME} --region ${REGION}"
+echo ""
+echo "ログを確認するには："
+echo "  gcloud run jobs logs read ${JOB_NAME} --region ${REGION}"
+echo ""
+echo "段階的にデプロイする場合："
+echo "  ./deploy.sh build   # ビルドのみ"
+echo "  ./deploy.sh push    # プッシュのみ"
+echo "  ./deploy.sh deploy  # デプロイのみ"
+echo ""
