@@ -1,7 +1,7 @@
 """列設定クラスのテスト"""
 import pytest
 from unittest.mock import Mock, patch
-from column_config import ColumnConfig
+from infrastructure.google_sheets.column_config import ColumnConfig
 
 
 class TestColumnConfig:
@@ -19,8 +19,8 @@ class TestColumnConfig:
         config = ColumnConfig("service_account.json", "test_id", "カスタム設定")
         assert config.config_sheet_name == "カスタム設定"
     
-    @patch('column_config.gspread.authorize')
-    @patch('column_config.ServiceAccountCredentials.from_json_keyfile_name')
+    @patch('infrastructure.google_sheets.column_config.gspread.authorize')
+    @patch('infrastructure.google_sheets.column_config.ServiceAccountCredentials.from_json_keyfile_name')
     def test_load_正常(self, mock_credentials, mock_authorize):
         """設定シートから正常に読み込める"""
         # モックの設定

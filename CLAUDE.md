@@ -18,8 +18,9 @@ src/
     shipment_tracking/
       tracking_info_fetcher.py               # ファサード
       ocs_fetcher.py / kaigen_fetcher.py     # 各社サイトのスクレイパ
-tests/
-  test_column_config.py
+  tests/
+    test_column_config.py
+pytest.ini                                   # pythonpath = src
 ```
 
 - 並列数: 最大3（サーバー負荷考慮、`ShipmentTrackingManager.MAX_CONCURRENT`）
@@ -60,17 +61,15 @@ GCPプロジェクト: `yiwu-automate`
 - ベース: Python（Playwright入り）、AMD64
 - 認証情報 `service_account.json` はイメージに同梱（`.gitignore` 済、コミット禁止）
 
-## 既知の課題（2026-05-05 時点）
+## 既知の課題
 
-- `Dockerfile` が旧構造（`COPY main.py .`）のまま。`src/` 配下への移行に未追従 → 次回 deploy 前に `COPY src/ ./src/` への修正必須
-- ルート `column_config.py`（97行）は `src/infrastructure/google_sheets/column_config.py` と重複。未使用なので削除候補
-- `tests/` がプロジェクト直下にある（DDD指針では `src/tests/`）。移動するか方針確定が必要
-- `domain/` 層が未実装（Entity / ValueObject / Repository インターフェース）
+- `domain/` 層が未実装（Entity / ValueObject / Repository インターフェース）。現状は infrastructure / usecases の2層のみ
+- `venv/` が壊れている（パスに非ASCIIが入った状態で作られた残骸）。テスト実行は `/opt/homebrew/bin/pytest` を使う運用
 
 ## テスト
 
 ```bash
-pytest tests/
+pytest                  # pytest.ini の testpaths=src/tests を自動検出
 ```
 
 ## ログ

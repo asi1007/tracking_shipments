@@ -19,8 +19,7 @@ RUN playwright install chromium
 RUN playwright install-deps chromium
 
 # アプリケーションコードをコピー
-COPY main.py .
-COPY column_config.py .
+COPY src/ ./src/
 COPY service_account.json .
 
 # 環境変数の設定（Cloud Run Jobsでオーバーライド可能）
@@ -29,5 +28,4 @@ ENV HEADLESS=true
 ENV PYTHONUNBUFFERED=1
 
 # スクリプトを実行
-CMD ["python", "main.py"]
-
+CMD ["python", "src/main.py"]
